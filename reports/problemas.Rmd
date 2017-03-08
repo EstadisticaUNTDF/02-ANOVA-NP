@@ -1,0 +1,164 @@
+---
+title: "ANOVA no paramétrico"
+subtitle: "Problemas"
+author: "Luciano Selzer"
+date: "8 de marzo de 2017"
+output: 
+  word_document:
+    fig_width: 6
+    fig_height: 6
+    fig_caption: true
+---
+
+
+```{r setup, include=FALSE}
+# Setup -------------------------------------------------------------------
+library(pander)
+library(xlsx)
+library(plyr)
+library(ggplot2)
+library(reshape2)
+library(magrittr)
+library(agricolae)
+library(compute.es)
+library(knitr)
+library(tidyr)
+library(PMCMR)
+# opts --------------------------------------------------------------------
+
+source("../src/opts.R")
+
+# Functions ---------------------------------------------------------------
+
+source("../src/functions.R")
+
+```
+
+
+## Problema 1
+
+Un ecólogo ha estudiado la estructura social de los lobos marinos durante su 
+permanencia en los apostaderos y ha sugerido que los juveniles de 1-2 años 
+permanecen asociados a grupos de hembras, presumiblemente donde se encuentran 
+sus madres. Para intentar establecer si la información disponible permite 
+respaldar la existencia de esta asociación durante los viajes de alimentación,
+el ecólogo utiliza información previamente colectada mediante registradores
+satelitales sobre la distancia media recorrida por viaje de alimentación. Esta 
+información se encuentra discriminada por sexo y categoría de edad. En este caso
+sólo utilizó la información de los machos y hembras adultos y de juveniles de
+1-2 años de ambos sexos. Estos datos fueron:
+
+
+```{r lobos}
+lobos <- read.xlsx("../data/no_parametrico.xlsx", sheetIndex = 2)
+lobos
+#Hay que ponerlo en formato largo
+lobos <- melt(lobos, measure.vars = 1:4, variable.name = "Sexo_Edad", value.name = "mn")
+lobos <- na.exclude(lobos)
+```
+¿Qué concluyó el ecólogo a partir de estos datos?
+
+```{r, fig.width=4, fig.height=3, fig.cap="Grafico de cajas y barras"}
+ggplot(lobos, aes(Sexo_Edad, mn)) + geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+```
+
+```{r lobos-mediana}
+with(lobos, Median.test(mn, Sexo_Edad))
+```
+```{r lobos-kruskal}
+with(lobos, kruskal(mn, Sexo_Edad, group = TRUE, console = TRUE))
+```
+
+
+## Problema 2
+
+2. En un estudio de ecología trófica se han detectado diferencias en la dieta 
+entre machos y hembras del lobo marino. Estas diferencias parecerían deberse a 
+que las hembras se alimentarían en aguas más someras y cercanas a la costa que
+los machos. Sabiendo que los cormoranes son predadores exclusivamente costeros, 
+que los tiburones son predadores típicos de la plataforma intermedia, y que las
+áreas costeras y someras se caracterizan por ser zonas de cría para muchas
+especies de peces, un biólogo comparó las tallas de las raneyas (pez demersal-
+bentónico) consumidas por cormoranes, tiburones y machos y hembras del lobo 
+marino. La intención de esta comparación fue evaluar si la hipótesis planteada 
+sobre las diferentes áreas de forrajeo de machos y hembras del lobo marino se ve sustentada o no.
+
+Largo total (cm) de raneyas consumidas por machos y hembras del lobo marino, 
+por tiburones y por cormoranes. 
+```{r dieta}
+dieta <- read.xlsx("../data/no_parametrico.xlsx", sheetIndex = 3, encoding = "UTF-8")
+dieta
+#Hay que ponerlo en formato largo
+dieta <- melt(dieta, measure.vars = 1:4, variable.name = "Consumidor", 
+              value.name = "largo_total")
+dieta <- na.exclude(dieta)
+```
+
+```{r dieta-figura, fig.width=4, fig.height=3, fig.cap="Grafico de cajas y barras"}
+ggplot(dieta, aes(Consumidor, largo_total)) + geom_boxplot()
+```
+
+```{r dieta-mediana}
+with(dieta, Median.test(largo_total, Consumidor))
+```
+```{r dieta-krukal}
+with(dieta, kruskal(largo_total, Consumidor, group = TRUE, console = TRUE))
+```
+¿Cuál es su conclusión?
+
+## Problema 3
+
+3. La dirección nacional de pesca desea determinar si los tres tipos de redes que se utilizan para la pesca de langostino son igualmente eficaces. Para ello calcula (para cada barco) el promedio anual de sus capturas (kg de langostino/lance) y clasifica a los barcos en función del tipo de red empleada. Los resultados obtenidos fueron:
+
+```{r pesca}
+red <- read.xlsx("../data/no_parametrico.xlsx", sheetIndex = 4, encoding = "UTF-8")
+red
+
+red <- melt(red, measure.vars = 1:3, variable.name = "tipo_red", 
+              value.name = "kg_x_lance")
+red <- na.exclude(red)
+```
+
+```{r pesca-figura, fig.width=4, fig.height=3, fig.cap="Grafico de cajas y barras"}
+ggplot(red, aes(tipo_red, kg_x_lance)) + geom_boxplot()
+```
+
+```{r pesca-mediana}
+with(red, Median.test(kg_x_lance, tipo_red))
+```
+
+```{r pesca-krukal}
+with(red, kruskal(kg_x_lance, tipo_red, group = TRUE, console = TRUE))
+```
+
+¿Se podría recomendar alguna red en particular?
+
+## Problema 4
+4. En una primera etapa de un proyecto sobre el cultivo de pulpos, se desea determinar si es posible aumentar la tasa de crecimiento de los pulpos mediante un incremento de la temperatura del agua. Para ello se seleccionaron al azar juveniles de pulpo y se los asignó aleatoriamente a tres peceras de cultivo. En la primera pecera (Temp 0) se mantuvo a los pulpitos en condiciones de temperatura similares a las del medio natural, en la segunda pecera (Temp 1) se utilizó una temperatura constante de 20ºC y en la tercera pecera (Temp 2) se mantuvo una temperatura constante de 25ºC.Los pulpitos fueron alimentados ad libitum durante los 60 días que duró la experiencia. Debido a que no se% dispuso de peceras individuales, los datos de los ejemplares de una misma pecera no pueden considerarse verdaderas réplicas, sino más bien pseudo-réplicas. Estos datos fueron asumidos como réplicas verdaderas teniendo en cuenta las dimensiones de las peceras (re-grandotas) en relación con los pulpitos (re-chiquitos) y a la nula observación de interacciones entre los ejemplares. Para cada pulpito se determinó el porcentaje de incremento en peso durante la experiencia como:
+ 
+$$\%Peso=\frac{Peso_{inicial}-Peso_{final}}{Peso_{inicial}}100 $$
+Los resultados obtenidos fueron:
+%Peso para los pulpos utilizados en cada experiencia
+```{r pulpos}
+pulpos <- read.xlsx("no_parametrico.xlsx", sheetIndex = 5, encoding = "UTF-8")
+pulpos
+
+pulpos <- melt(pulpos, measure.vars = 1:3, variable.name = "temperatura", 
+              value.name = "peso")
+pulpos <- na.exclude(pulpos)
+```
+
+
+```{r, fig.width=4, fig.height=3, fig.cap="Grafico de cajas y barras"}
+ggplot(pulpos, aes(temperatura, peso)) + geom_boxplot()
+```
+
+```{r}
+with(pulpos, Median.test(peso, temperatura))
+```
+
+```{r}
+with(pulpos, kruskal(peso, temperatura, group = TRUE, console = TRUE))
+```
+¿Es factible aumentar la tasa de crecimiento de los pulpos aumentando la temperatura del medio?
