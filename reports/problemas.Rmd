@@ -141,7 +141,7 @@ $$\%Peso=\frac{Peso_{inicial}-Peso_{final}}{Peso_{inicial}}100 $$
 Los resultados obtenidos fueron:
 %Peso para los pulpos utilizados en cada experiencia
 ```{r pulpos}
-pulpos <- read.xlsx("no_parametrico.xlsx", sheetIndex = 5, encoding = "UTF-8")
+pulpos <- read.xlsx("../data/no_parametrico.xlsx", sheetIndex = 5, encoding = "UTF-8")
 pulpos
 
 pulpos <- melt(pulpos, measure.vars = 1:3, variable.name = "temperatura", 
